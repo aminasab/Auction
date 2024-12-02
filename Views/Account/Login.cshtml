@@ -1,0 +1,20 @@
+﻿@model LoginViewModel
+
+<h2>Вход</h2>
+<div class="form-container">
+<form  method="post" action="/Account/Login">
+    <div class="form-group">
+        <label asp-for="Email">Имя</label>
+        <input asp-for="Email" class="form-input" />
+        <span asp-validation-for="Email"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="Password">Пароль</label>
+        <input asp-for="Password" type="password" class="form-input" />
+        <span asp-validation-for="Password"></span>
+    </div>
+        <div style="text-align: center; width: 100%;">
+            <button type="submit" class="custom-button green">Войти</button>
+        </div>
+</form>
+</div>

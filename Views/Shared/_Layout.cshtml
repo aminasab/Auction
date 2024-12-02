@@ -1,0 +1,64 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - OnlineAuction</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/OnlineAuction.styles.css" asp-append-version="true" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft.signalr/6.0.0/signalr.min.js"></script> <!-- Подключение SignalR -->
+</head>
+    <body style="background: white;">
+        <header>
+        <nav class=" head navbar navbar-expand-lg fixed-top" style="background:#3E94D1">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="#" style="color: white; font-size: 24px; font-weight: bold;">Онлайн-аукцион</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#navbarOffcanvas" aria-controls="navbarOffcanvas" 
+                aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <div class="offcanvas offcanvas-end" tabindex="-1" id="navbarOffcanvas" aria-labelledby="navbarOffcanvasLabel" style="background: #3E94D1;">
+                    <div class="offcanvas-header">
+                        <h5 class="offcanvas-title" id="navbarOffcanvasLabel" style="color: white;">Меню</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+                    </div>
+                    <div class="button-container">
+                        @if (!User.Identity.IsAuthenticated)
+                        {
+                           @using (Html.BeginForm("Login", "Account", FormMethod.Get, new { target = "_blank" }))
+                        {
+                            <button class="btn custom-button" type="submit">Войти</button>
+                        }
+                        @using (Html.BeginForm("Register", "Account", FormMethod.Get, new { target = "_blank" }))
+                        {
+                            <button class="btn custom-button" type="submit">Зарегистрироваться</button>
+                        }
+                        }
+                        else
+                        {
+                            <p>Добро пожаловать, @User.Identity.Name!</p>
+                        }
+                    </div>
+                </div>
+                </div>
+            </nav>
+        </header>
+    <div class="container">
+        <main role="main" class="pb-3">
+            @RenderBody()
+        </main>
+    </div>
+
+    <footer class="border-top footer text-muted">
+        <div class="container">
+           2024 - Онлайн-аукцион
+        </div>
+    </footer>
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+  
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

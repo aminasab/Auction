@@ -1,0 +1,162 @@
+﻿<div class="index__container">
+    <h3>Онлайн-аукцион мандаринок</h3>
+    <h4>Новая мандаринка генерируется каждые 2 сек. В 12 ночи платформа очищается от испорченных мандаринок</h4>
+</div>
+<div id="mandarinsContainer" class="mandarins-container flex-class">
+    <!-- Новые карточки будут добавляться сюда -->
+</div>
+
+<!-- Модальное окно для ввода ставки -->
+<div id="bidModal" class="modal" style="display:none;">
+    <div class="modal-content">
+        <span class="close" onclick="closeBidModal()">&times;</span>
+        <h2>Сделать ставку</h2>
+        <label for="newBid">Введите новую цену:</label>
+        <input type="number" id="newBid" min="0" step="0.01">
+        <button class="btn-modal" id="submitBid" onclick="submitBid()">Отправить ставку</button>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.js"></script>
+<script>
+
+    const connection = new signalR.HubConnectionBuilder()
+        .withUrl("/mandarinsHub")
+        .configureLogging(signalR.LogLevel.Information)
+        .build();
+
+    connection.on("ReceiveMandarinUpdate", function (mandarin) {
+        addMandarinCard(mandarin);
+    });
+
+    async function loadInitialMandarins() {
+        const response = await fetch('/api/mandarins');
+        const mandarins = await response.json();
+        mandarins.forEach(mandarin => {
+            addMandarinCard(mandarin);
+        });
+    }
+
+    function addMandarinCard(mandarin) {
+        const card = document.createElement("div");
+        card.className = "card";
+        card.id = `mandarin - ${mandarin.id}`;
+        // Создаём содержимое карточки
+        card.innerHTML =`<img src="${mandarin.imageUrl}" class="card-img-top" alt="Здесь отображается мандаринка" />
+    <div class="card-body">
+        <h5 class="card-title">Мандаринка № ${mandarin.id} Цена: ${mandarin.price}</h5>
+        <div class="button-container">
+            <button class="custom-button" onclick="handleBid(${mandarin.id})">Сделать ставку</button>
+                    <button class="custom-button" onclick="handleBuy(${mandarin.id}, ${mandarin.price})">Выкупить</button>
+        </div>
+    </div>`;
+
+        // Добавляем карточку в контейнер
+        const mandarinsContainer = document.getElementById('mandarinsContainer');
+        mandarinsContainer.appendChild(card);
+    };
+
+    async function start() {
+        try {
+            await connection.start();
+            console.log("SignalR Connected.");
+            loadInitialMandarins();
+        } catch (err) {
+            console.log(err);
+            setTimeout(start, 5000);
+        }
+    };
+
+    connection.onclose(async () => {
+        await start();
+    });
+
+    // Запуск соединения.
+    start();
+
+    connection.on("RemoveMandarin", function (mandarinId) {
+        const card = document.getElementById(`mandarin - ${mandarinId}`);
+        if (card) {
+            card.remove();
+            console.log("Удаление мандаринки с ID:", mandarinId);
+        }
+    });
+
+    connection.on("UpdateMandarin", function(requestId, requestPrice){
+
+    const card = document.getElementById(`mandarin - ${requestId}`);
+    const card = document.getElementById(`mandarin - ${requestId}`);
+    if (card) {
+        const titleElement = card.querySelector('.card-title');
+        if (titleElement) {
+        titleElement.innerHTML = `Мандаринка № ${requestId} Цена: ${requestPrice} руб.`;
+        }
+        console.log(`Обновление мандаринки с ID: ${requestId}, новая цена: ${requestPrice}`);
+    }else {
+        console.error('Элемент card не найден.');
+    }
+    });
+
+    function handleBid(mandarinId) {
+            if (@Html.Raw(Json.Serialize(User.Identity.IsAuthenticated))===false) {
+            alert("Пожалуйста, войдите в систему, чтобы сделать ставку.");
+            return;
+        }
+        // Логика для обработки ставки
+        alert(`Ставка сделана на мандаринку № ${ mandarinId }`);
+    }
+
+    function handleBuy(mandarinId, mandarinPrice) {
+            if ((@Html.Raw(Json.Serialize(User.Identity.IsAuthenticated))===false)) {
+            alert("Пожалуйста, войдите в систему, чтобы выкупить мандаринку.");
+            return;
+    }
+
+    // Логика для обработки выкупа
+    const xhr = new XMLHttpRequest();
+          xhr.open('POST', '/Mandarin/BuyMandarin', true);
+          xhr.setRequestHeader('Content-Type', 'application/json');   
+          console.log(mandarinId, mandarinPrice);
+          const data = JSON.stringify({ Id: mandarinId, Price:mandarinPrice});
+          xhr.send(data);
+          alert(`Мандаринка № ${ mandarinId } выкуплена.`);
+    }
+
+    let currentMandarinId = null;
+
+     function handleBid(mandarinId) {
+            if (@Html.Raw(Json.Serialize(User.Identity.IsAuthenticated)) === false) {
+                alert("Пожалуйста, войдите в систему, чтобы сделать ставку.");
+                return;
+            }
+            currentMandarinId = mandarinId;
+            document.getElementById("bidModal").style.display = "block";
+      }   
+
+        function closeBidModal() {
+            document.getElementById("bidModal").style.display = "none";
+        }
+
+        async function submitBid() {
+            const newBid = document.getElementById("newBid").value;
+            if (!newBid || newBid <= 0) {
+                alert("Пожалуйста, введите корректную цену.");
+                return;
+        }
+
+        // Логика для отправки ставки на сервер
+        const xhr = new XMLHttpRequest();
+                    xhr.open('POST', '/Mandarin/PlaceBet', true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+                const data = JSON.stringify({Id: currentMandarinId, Price: parseFloat(newBid) });
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    alert(`Ставка в размере ${newBid} на мандаринку № ${currentMandarinId} успешно сделана.`);
+                    closeBidModal();
+                } else {
+                    alert("Произошла ошибка при отправке ставки.");
+                }
+            };
+            xhr.send(data);
+        }
+</script>
